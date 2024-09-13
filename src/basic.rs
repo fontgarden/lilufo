@@ -5,6 +5,7 @@ use xmltree::Element;
 use glob::glob;
 use std::fs;
 use anyhow::{Result, anyhow};
+use std::io::Cursor;
 
 pub fn display_basic_info(font: &Font) {
     println!("Font Information:");
@@ -25,7 +26,10 @@ pub fn round_points_to_even(ufo_path: &Path) -> Result<()> {
 
         round_element_points(&mut xml);
 
-        let modified_xml = xml.write_to_string();
+        let mut writer = Cursor::new(Vec::new());
+        xml.write_with_config(&mut writer, xmltree::EmitterConfig::new().perform_indent(true))?;
+        let modified_xml = String::from_utf8(writer.into_inner())?;
+
         fs::write(&path, modified_xml)?;
 
         if verify_even_points(&xml) {
