@@ -8,6 +8,13 @@ use anyhow::{Result, anyhow};
 use std::io::Cursor;
 
 pub fn display_basic_info(font: &Font) {
+    println!("    .     *     .           .     ");
+    println!("   .-----.                        ");
+    println!(" _/___@_@_\\_              .      ");
+    println!("(___________)      *              ");
+    println!("                                  ");
+    println!("Lil' UFO");
+    println!("");
     println!("Font Information:");
     println!("Family Name: {}", font.font_info.family_name.as_deref().unwrap_or("N/A"));
     println!("Style Name: {}", font.font_info.style_name.as_deref().unwrap_or("N/A"));
