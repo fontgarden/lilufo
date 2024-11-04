@@ -14,7 +14,19 @@
 //!        --group-name "O_group" \
 //!        --group-side "left" \
 //!        --group-members "O,Q,C,G"
+//!
+//! # Edit an existing kerning group
+//! lilufo --ufo-path font.ufo \
+//!        --edit-kerning-group \
+//!        --group-name "O_group" \
+//!        --group-side "left" \
+//!        --group-members "O,Q,C,G,Ø"
 //! ```
+//!
+//! Note: For both add and edit commands:
+//! - group-side must be either "left" or "right"
+//! - group-members should be a comma-separated list of glyph names
+//! - group-name should not include the "public.kern1." or "public.kern2." prefix
 
 use std::path::{Path, PathBuf};
 use std::collections::BTreeMap;
@@ -151,5 +163,43 @@ pub fn add_kerning_group(
     font.save(ufo_path)?;
     
     println!("Successfully added kerning group '{}'", group_name);
+    Ok(())
+}
+
+pub fn edit_kerning_group(
+    ufo_path: &PathBuf,
+    group_name: &str,
+    group_side: &str,
+    members: &[String]
+) -> Result<()> {
+    let mut font = Font::load(ufo_path)?;
+    
+    // Validate group side
+    if group_side != "left" && group_side != "right" {
+        return Err(anyhow::anyhow!("group_side must be either 'left' or 'right'"));
+    }
+
+    // Get the full group name with prefix
+    let prefix = if group_side == "left" { "public.kern1." } else { "public.kern2." };
+    let full_group_name = format!("{}{}", prefix, group_name);
+    
+    // Check if the group exists
+    if !font.groups.contains_key(&Name::new(&full_group_name)?) {
+        return Err(anyhow::anyhow!("Kerning group '{}' does not exist", group_name));
+    }
+    
+    // Convert Vec<String> to Vec<Name>
+    let name_members: Vec<norad::Name> = members
+        .iter()
+        .map(|s| norad::Name::new(s))
+        .collect::<Result<Vec<_>, _>>()?;
+    
+    // Update the group
+    font.groups.insert(Name::new(&full_group_name)?, name_members);
+    
+    // Save the changes back to the UFO file
+    font.save(ufo_path)?;
+    
+    println!("Successfully updated kerning group '{}'", group_name);
     Ok(())
 }

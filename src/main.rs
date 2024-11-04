@@ -47,6 +47,10 @@ struct Cli {
     /// Members of the kerning group (comma-separated)
     #[arg(long)]
     group_members: Option<String>,
+
+    /// Edit an existing kerning group
+    #[arg(long)]
+    edit_kerning_group: bool,
 }
 
 fn main() -> Result<()> {
@@ -59,11 +63,11 @@ fn main() -> Result<()> {
         println!("(___________)      *              ");
         println!("                                  ");
         println!("Lil' UFO - UFO Font File Tool v{}", env!("CARGO_PKG_VERSION"));
-        println!("");
+        //println!("");
         println!("Usage: lilufo --ufo-path <path-to-ufo-file> [OPTIONS]");
-        println!("");
-        println!("For more information about available options, run:");
-        println!("  lilufo --help");
+        //println!("");
+        println!("For more information about available options, run: lilufo --help");
+        //println!("  lilufo --help");
         return Ok(());
     }
 
@@ -95,6 +99,21 @@ fn main() -> Result<()> {
             .collect();
         
         kerning::add_kerning_group(&ufo_path, &group_name, &group_side, &members)?;
+    } else if cli.edit_kerning_group {
+        // Validate required parameters
+        let group_name = cli.group_name
+            .ok_or_else(|| anyhow::anyhow!("--group-name is required for editing a kerning group"))?;
+        let group_side = cli.group_side
+            .ok_or_else(|| anyhow::anyhow!("--group-side is required for editing a kerning group"))?;
+        let members = cli.group_members
+            .ok_or_else(|| anyhow::anyhow!("--group-members is required for editing a kerning group"))?;
+        
+        // Split comma-separated members into a vector
+        let members: Vec<String> = members.split(',')
+            .map(|s| s.trim().to_string())
+            .collect();
+        
+        kerning::edit_kerning_group(&ufo_path, &group_name, &group_side, &members)?;
     } else {
         println!("UFO file loaded. Use --basic-info to see basic font information, --round-to-even to round all points, --show-kerning-groups to display kerning groups, or --show-kerning to display kerning pairs.");
     }
