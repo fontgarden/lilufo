@@ -42,13 +42,17 @@ pub fn display_kerning_groups(ufo_path: &Path) -> Result<()> {
         if name.starts_with("public.kern1.") {
             let group_name = name.strip_prefix("public.kern1.").unwrap_or(name);
             if let Value::Array(members) = members {
-                println!("\n{}", group_name);
-                println!("{}", "-".repeat(group_name.len()));
-                for member in members {
-                    if let Value::String(glyph) = member {
-                        println!("  {}", glyph);
-                    }
-                }
+                let members_str: Vec<String> = members
+                    .iter()
+                    .filter_map(|m| {
+                        if let Value::String(glyph) = m {
+                            Some(glyph.clone())
+                        } else {
+                            None
+                        }
+                    })
+                    .collect();
+                println!("@{} → {}", group_name, members_str.join(", "));
             }
         }
     }
@@ -59,13 +63,17 @@ pub fn display_kerning_groups(ufo_path: &Path) -> Result<()> {
         if name.starts_with("public.kern2.") {
             let group_name = name.strip_prefix("public.kern2.").unwrap_or(name);
             if let Value::Array(members) = members {
-                println!("\n{}", group_name);
-                println!("{}", "-".repeat(group_name.len()));
-                for member in members {
-                    if let Value::String(glyph) = member {
-                        println!("  {}", glyph);
-                    }
-                }
+                let members_str: Vec<String> = members
+                    .iter()
+                    .filter_map(|m| {
+                        if let Value::String(glyph) = m {
+                            Some(glyph.clone())
+                        } else {
+                            None
+                        }
+                    })
+                    .collect();
+                println!("@{} → {}", group_name, members_str.join(", "));
             }
         }
     }
