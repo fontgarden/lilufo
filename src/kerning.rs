@@ -1,8 +1,27 @@
-use std::path::Path;
+//! Kerning tools for UFO fonts
+//! 
+//! Usage:
+//! ```bash
+//! # Display all kerning groups in a UFO
+//! lilufo --ufo-path font.ufo --show-kerning-groups
+//! 
+//! # Display all kerning pairs in a UFO
+//! lilufo --ufo-path font.ufo --show-kerning
+//! 
+//! # Add a new kerning group
+//! lilufo --ufo-path font.ufo \
+//!        --add-kerning-group \
+//!        --group-name "O_group" \
+//!        --group-side "left" \
+//!        --group-members "O,Q,C,G"
+//! ```
+
+use std::path::{Path, PathBuf};
 use std::collections::BTreeMap;
 use anyhow::Result;
 use plist::Value;
 use std::fs;
+use norad::{Font, Name};
 
 pub fn display_kerning_groups(ufo_path: &Path) -> Result<()> {
     let groups_path = ufo_path.join("groups.plist");
@@ -89,5 +108,40 @@ pub fn display_kerning(ufo_path: &Path) -> Result<()> {
         }
     }
 
+    Ok(())
+}
+
+pub fn add_kerning_group(
+    ufo_path: &PathBuf,
+    group_name: &str,
+    group_side: &str,
+    members: &[String]
+) -> Result<()> {
+    let mut font = Font::load(ufo_path)?;
+    
+    // Validate group side
+    if group_side != "left" && group_side != "right" {
+        return Err(anyhow::anyhow!("group_side must be either 'left' or 'right'"));
+    }
+
+    // Directly borrow the groups as mutable
+    let groups = &mut font.groups;
+    
+    // Add the new group
+    let prefix = if group_side == "left" { "public.kern1." } else { "public.kern2." };
+    let full_group_name = format!("{}{}", prefix, group_name);
+    
+    // Convert Vec<String> to Vec<Name>
+    let name_members: Vec<norad::Name> = members
+        .iter()
+        .map(|s| norad::Name::new(s))
+        .collect::<Result<Vec<_>, _>>()?;
+    
+    groups.insert(Name::new(&full_group_name)?, name_members);
+    
+    // Save the changes back to the UFO file
+    font.save(ufo_path)?;
+    
+    println!("Successfully added kerning group '{}'", group_name);
     Ok(())
 }

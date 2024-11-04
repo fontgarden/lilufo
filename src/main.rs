@@ -31,6 +31,22 @@ struct Cli {
     /// Display kerning pairs
     #[arg(long)]
     show_kerning: bool,
+
+    /// Add a new kerning group
+    #[arg(long)]
+    add_kerning_group: bool,
+
+    /// Name for the new kerning group
+    #[arg(long)]
+    group_name: Option<String>,
+
+    /// Side for the kerning group (left or right)
+    #[arg(long)]
+    group_side: Option<String>,
+
+    /// Members of the kerning group (comma-separated)
+    #[arg(long)]
+    group_members: Option<String>,
 }
 
 fn main() -> Result<()> {
@@ -64,6 +80,21 @@ fn main() -> Result<()> {
         kerning::display_kerning_groups(&ufo_path)?;
     } else if cli.show_kerning {
         kerning::display_kerning(&ufo_path)?;
+    } else if cli.add_kerning_group {
+        // Validate required parameters
+        let group_name = cli.group_name
+            .ok_or_else(|| anyhow::anyhow!("--group-name is required for adding a kerning group"))?;
+        let group_side = cli.group_side
+            .ok_or_else(|| anyhow::anyhow!("--group-side is required for adding a kerning group"))?;
+        let members = cli.group_members
+            .ok_or_else(|| anyhow::anyhow!("--group-members is required for adding a kerning group"))?;
+        
+        // Split comma-separated members into a vector
+        let members: Vec<String> = members.split(',')
+            .map(|s| s.trim().to_string())
+            .collect();
+        
+        kerning::add_kerning_group(&ufo_path, &group_name, &group_side, &members)?;
     } else {
         println!("UFO file loaded. Use --basic-info to see basic font information, --round-to-even to round all points, --show-kerning-groups to display kerning groups, or --show-kerning to display kerning pairs.");
     }
