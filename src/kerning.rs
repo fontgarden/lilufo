@@ -29,6 +29,20 @@
 //!        --group-name "O_group" \
 //!        --group-side "left" \
 //!        --group-members "Ø"
+//!
+//! # Add a new kerning pair (using group names)
+//! lilufo --ufo-path font.ufo \
+//!        --add-kerning-pair \
+//!        --first "@O_group" \
+//!        --second "@A_group" \
+//!        --value -50
+//!
+//! # Add a new kerning pair (using glyph names)
+//! lilufo --ufo-path font.ufo \
+//!        --add-kerning-pair \
+//!        --first "T" \
+//!        --second "a" \
+//!        --value -100
 //! ```
 //!
 //! Note: For both add and edit commands:
@@ -224,5 +238,57 @@ pub fn edit_kerning_group(
     font.save(ufo_path)?;
     
     println!("Successfully updated kerning group '{}'", group_name);
+    Ok(())
+}
+
+pub fn add_kerning_pair(
+    ufo_path: &PathBuf,
+    first: &str,
+    second: &str,
+    value: i32
+) -> Result<()> {
+    let mut font = Font::load(ufo_path)?;
+    
+    // Validate that if groups are used, they exist and have correct prefixes
+    if first.starts_with("@") {
+        let group_name = format!("public.kern1.{}", &first[1..]);
+        if !font.groups.contains_key(&Name::new(&group_name)?) {
+            return Err(anyhow::anyhow!("First group '{}' does not exist", first));
+        }
+    }
+    
+    if second.starts_with("@") {
+        let group_name = format!("public.kern2.{}", &second[1..]);
+        if !font.groups.contains_key(&Name::new(&group_name)?) {
+            return Err(anyhow::anyhow!("Second group '{}' does not exist", second));
+        }
+    }
+    
+    // Convert @GroupName notation to public.kern*.GroupName
+    let first_key = if first.starts_with("@") {
+        format!("public.kern1.{}", &first[1..])
+    } else {
+        first.to_string()
+    };
+    
+    let second_key = if second.starts_with("@") {
+        format!("public.kern2.{}", &second[1..])
+    } else {
+        second.to_string()
+    };
+    
+    // Add or update the kerning pair
+    if let Some(first_dict) = font.kerning.get_mut(&Name::new(&first_key)?) {
+        first_dict.insert(Name::new(&second_key)?, value as f64);
+    } else {
+        let mut first_dict = BTreeMap::new();
+        first_dict.insert(Name::new(&second_key)?, value as f64);
+        font.kerning.insert(Name::new(&first_key)?, first_dict);
+    }
+    
+    // Save the changes back to the UFO file
+    font.save(ufo_path)?;
+    
+    println!("Successfully added kerning pair '{}' '{}' → {}", first, second, value);
     Ok(())
 }

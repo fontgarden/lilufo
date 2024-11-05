@@ -55,6 +55,22 @@ struct Cli {
     /// Append members to existing group instead of replacing them
     #[arg(long)]
     append_members: bool,
+
+    /// Add a new kerning pair
+    #[arg(long)]
+    add_kerning_pair: bool,
+
+    /// First member of kerning pair (glyph or group name)
+    #[arg(long)]
+    first: Option<String>,
+
+    /// Second member of kerning pair (glyph or group name)
+    #[arg(long)]
+    second: Option<String>,
+
+    /// Kerning value (integer)
+    #[arg(long)]
+    value: Option<i32>,
 }
 
 fn main() -> Result<()> {
@@ -118,6 +134,15 @@ fn main() -> Result<()> {
             .collect();
         
         kerning::edit_kerning_group(&ufo_path, &group_name, &group_side, &members, cli.append_members)?;
+    } else if cli.add_kerning_pair {
+        let first = cli.first
+            .ok_or_else(|| anyhow::anyhow!("--first is required for adding a kerning pair"))?;
+        let second = cli.second
+            .ok_or_else(|| anyhow::anyhow!("--second is required for adding a kerning pair"))?;
+        let value = cli.value
+            .ok_or_else(|| anyhow::anyhow!("--value is required for adding a kerning pair"))?;
+        
+        kerning::add_kerning_pair(&ufo_path, &first, &second, value)?;
     } else {
         println!("UFO file loaded. Use --basic-info to see basic font information, --round-to-even to round all points, --show-kerning-groups to display kerning groups, or --show-kerning to display kerning pairs.");
     }
