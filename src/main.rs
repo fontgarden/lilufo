@@ -51,6 +51,10 @@ struct Cli {
     /// Edit an existing kerning group
     #[arg(long)]
     edit_kerning_group: bool,
+
+    /// Append members to existing group instead of replacing them
+    #[arg(long)]
+    append_members: bool,
 }
 
 fn main() -> Result<()> {
@@ -113,7 +117,7 @@ fn main() -> Result<()> {
             .map(|s| s.trim().to_string())
             .collect();
         
-        kerning::edit_kerning_group(&ufo_path, &group_name, &group_side, &members)?;
+        kerning::edit_kerning_group(&ufo_path, &group_name, &group_side, &members, cli.append_members)?;
     } else {
         println!("UFO file loaded. Use --basic-info to see basic font information, --round-to-even to round all points, --show-kerning-groups to display kerning groups, or --show-kerning to display kerning pairs.");
     }

@@ -15,18 +15,27 @@
 //!        --group-side "left" \
 //!        --group-members "O,Q,C,G"
 //!
-//! # Edit an existing kerning group
+//! # Edit an existing kerning group (replaces existing members)
 //! lilufo --ufo-path font.ufo \
 //!        --edit-kerning-group \
 //!        --group-name "O_group" \
 //!        --group-side "left" \
 //!        --group-members "O,Q,C,G,Ø"
+//!
+//! # Append members to an existing kerning group
+//! lilufo --ufo-path font.ufo \
+//!        --edit-kerning-group \
+//!        --append-members \
+//!        --group-name "O_group" \
+//!        --group-side "left" \
+//!        --group-members "Ø"
 //! ```
 //!
 //! Note: For both add and edit commands:
 //! - group-side must be either "left" or "right"
 //! - group-members should be a comma-separated list of glyph names
 //! - group-name should not include the "public.kern1." or "public.kern2." prefix
+//! - use --append-members with --edit-kerning-group to add to existing members instead of replacing them
 
 use std::path::{Path, PathBuf};
 use std::collections::BTreeMap;
@@ -170,7 +179,8 @@ pub fn edit_kerning_group(
     ufo_path: &PathBuf,
     group_name: &str,
     group_side: &str,
-    members: &[String]
+    members: &[String],
+    append: bool
 ) -> Result<()> {
     let mut font = Font::load(ufo_path)?;
     
@@ -182,20 +192,33 @@ pub fn edit_kerning_group(
     // Get the full group name with prefix
     let prefix = if group_side == "left" { "public.kern1." } else { "public.kern2." };
     let full_group_name = format!("{}{}", prefix, group_name);
+    let full_name = Name::new(&full_group_name)?;
     
     // Check if the group exists
-    if !font.groups.contains_key(&Name::new(&full_group_name)?) {
+    if !font.groups.contains_key(&full_name) {
         return Err(anyhow::anyhow!("Kerning group '{}' does not exist", group_name));
     }
     
-    // Convert Vec<String> to Vec<Name>
-    let name_members: Vec<norad::Name> = members
+    // Convert new members to Vec<Name>
+    let mut name_members: Vec<norad::Name> = members
         .iter()
         .map(|s| norad::Name::new(s))
         .collect::<Result<Vec<_>, _>>()?;
     
+    // If appending, combine with existing members
+    if append {
+        if let Some(existing_members) = font.groups.get(&full_name) {
+            let mut combined_members = existing_members.clone();
+            combined_members.extend(name_members);
+            // Deduplicate members
+            combined_members.sort();
+            combined_members.dedup();
+            name_members = combined_members;
+        }
+    }
+    
     // Update the group
-    font.groups.insert(Name::new(&full_group_name)?, name_members);
+    font.groups.insert(full_name, name_members);
     
     // Save the changes back to the UFO file
     font.save(ufo_path)?;
