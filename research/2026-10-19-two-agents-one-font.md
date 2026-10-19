@@ -144,3 +144,25 @@ Revert" on every external write.
   directory excluded from builds. Decide after the spike shows the
   file shape.
 - Whether the headless MCP server and the CLI should be one binary.
+
+## 8. What the headless survey adds (see 2026-10-19-headless-editing-today.md)
+
+- Point-level design edits by agents are absent from the public
+  record. Headless edits today are metadata, kerning, groups,
+  features, normalization. The geometry path is unproven everywhere,
+  not just here. The spike's agent-edit test is the first measurement.
+- The three failure modes found in the wild (whole-font rewrites,
+  lossy read-modify-write, no feedback loop) map one to one onto the
+  setup above: per-glyph atomic writes, preserve-unknown with a loss
+  report, and a one-command render.
+- RoboFont's External Changes window is the UX precedent for item 4:
+  accept external changes per glyph with a diff. Fontra replaces
+  server data and drops pending client edits; Glyphs offers whole
+  file reload or keep. Nobody merges by ID yet.
+- defcon already writes only dirty glyphs on an in-place save. norad,
+  which Runebender uses for UFO, removes the directory and rewrites
+  everything. Per-glyph save is a known pattern, not new ground.
+- Repo rules written for agents (brex-font, math-core-fonts) forbid
+  shape edits outright, and one keeps edits in a patch file applied
+  at build so the diff is readable. That is the semantic-ops idea
+  arrived at independently by a user under pain.
