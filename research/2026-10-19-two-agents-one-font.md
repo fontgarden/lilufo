@@ -166,3 +166,12 @@ Revert" on every external write.
   shape edits outright, and one keeps edits in a patch file applied
   at build so the diff is readable. That is the semantic-ops idea
   arrived at independently by a user under pain.
+
+## 9. Correction on the "AI fails at vectors" finding
+
+The survey's consensus is for unconstrained outlines handed to a
+general model. Eli's grid method and QA loop report usable per-point
+results; see 2026-10-19-eli-vector-method.md. The format must not be
+built around that method, but integer coordinates, a declared grid,
+tokenizable rows, and shared point IDs across masters all serve it at
+no cost to anyone else.
