@@ -27,3 +27,29 @@ lilufo will read `.fontra` projects through converters, but will not
 be built as a contribution to Fontra or on top of its data model.
 Fontra's model is still a useful checklist of what a variable glyph
 needs to hold.
+
+## 2026-10-19 — lilufo is a new format with converters
+
+Not a UFO extension. Lossless import of UFO and Designspace and
+export with a loss report are required. babelfont-rs is the planned
+converter layer.
+
+## 2026-10-19 — The glyph is the unit of a file
+
+One file, or one directory, per glyph, holding every source of that
+glyph. The spike decides file versus directory. The reason is
+per-glyph conflict detection between a headless agent and the live
+editor, as well as Git. See research/2026-10-19-two-agents-one-font.md.
+
+## 2026-10-19 — Topology/geometry split is the central hypothesis
+
+Point structure, IDs, and types declared once per glyph; each source
+is a coordinate table against those IDs. To be tested by a
+serialization spike before any schema is written. Not yet proven.
+
+## 2026-10-19 — Serialization candidates: XML, strict JSON, line-oriented text
+
+Readability is a scored criterion, judged by Eli. The spike encodes
+the same glyphs all three ways and compares bytes, tokens, diff size,
+merge behaviour, agent edit success, and readability. JSON is not the
+default.
