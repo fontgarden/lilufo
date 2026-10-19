@@ -20,3 +20,10 @@ the proposal, and find out what is really missing.
 Code in this repository is Apache-2.0. Specification text may need a
 different license (for example CC BY 4.0). Decide before the first
 public spec draft.
+
+## 2026-10-18 — Fontra is an import target, not an upstream
+
+lilufo will read `.fontra` projects through converters, but will not
+be built as a contribution to Fontra or on top of its data model.
+Fontra's model is still a useful checklist of what a variable glyph
+needs to hold.
