@@ -53,3 +53,18 @@ Readability is a scored criterion, judged by Eli. The spike encodes
 the same glyphs all three ways and compares bytes, tokens, diff size,
 merge behaviour, agent edit success, and readability. JSON is not the
 default.
+
+## 2026-10-19 — The edit protocol is its own spec
+
+The file format describes a font on disk. A separate, smaller spec
+describes how an agent changes it: target by stable ID, precondition
+on the file hash that was read, dry-run, receipt. Runebender's MCP
+tools are the first draft. Provisional: Eli accepted this as worth
+trying and it can change if it causes problems.
+
+## 2026-10-19 — OpenType outlines are the core; neural and procedural glyphs are extensions
+
+The core format is outlines and components. Each glyph source has a
+geometry slot shaped so a model reference plus a cached outline can
+sit there under an extension namespace later. Core tools use the
+cached outline and ignore the model.
